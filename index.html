@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACME Corp Widget Order Management</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top */
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            padding: 2rem; /* Add some padding around the content */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+        /* Custom scrollbar for order list */
+        #orderListContainer::-webkit-scrollbar {
+            width: 8px;
+        }
+        #orderListContainer::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        #orderListContainer::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        #orderListContainer::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="container bg-white shadow-lg rounded-xl p-8 space-y-8">
+        <!-- Header Section -->
+        <header class="text-center pb-6 border-b border-gray-200">
+            <h1 class="text-4xl font-extrabold text-blue-700 mb-2">ACME Corp</h1>
+            <p class="text-xl text-gray-600">Widget Order Management</p>
+        </header>
+
+        <!-- New Order Form Section -->
+        <section class="bg-blue-50 p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-blue-800 mb-6">Place New Order</h2>
+            <form id="orderForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="customerName" class="block text-gray-700 text-sm font-bold mb-2">Customer Name:</label>
+                    <input type="text" id="customerName" name="customerName" required
+                           class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out">
+                </div>
+                <div>
+                    <label for="widgetType" class="block text-gray-700 text-sm font-bold mb-2">Widget Type:</label>
+                    <select id="widgetType" name="widgetType" required
+                            class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out">
+                        <option value="">Select a Widget</option>
+                        <option value="Alpha">Alpha Widget</option>
+                        <option value="Beta">Beta Widget</option>
+                        <option value="Gamma">Gamma Widget</option>
+                        <option value="Delta">Delta Widget</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="quantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" value="1" required
+                           class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out">
+                </div>
+                <div class="md:col-span-2 flex justify-center">
+                    <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                        Place Order
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Existing Orders Section -->
+        <section class="bg-gray-50 p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Existing Orders</h2>
+            <div id="orderListContainer" class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100 sticky top-0">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Order ID
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Customer Name
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Widget Type
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Quantity
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Order Date
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Orders will be dynamically added here -->
+                    </tbody>
+                </table>
+                <p id="noOrdersMessage" class="text-center text-gray-500 py-4 hidden">No orders placed yet.</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Mock data for orders
+        let orders = [
+            { id: 'ORD001', customerName: 'John Doe', widgetType: 'Alpha', quantity: 5, orderDate: '2024-07-28' },
+            { id: 'ORD002', customerName: 'Jane Smith', widgetType: 'Beta', quantity: 2, orderDate: '2024-07-29' },
+        ];
+        let nextOrderId = orders.length + 1;
+
+        const orderForm = document.getElementById('orderForm');
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        const noOrdersMessage = document.getElementById('noOrdersMessage');
+
+        // Function to render orders in the table
+        function renderOrders() {
+            ordersTableBody.innerHTML = ''; // Clear existing rows
+            if (orders.length === 0) {
+                noOrdersMessage.classList.remove('hidden');
+                return;
+            } else {
+                noOrdersMessage.classList.add('hidden');
+            }
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${order.customerName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${order.widgetType}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${order.quantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${order.orderDate}</td>
+                `;
+                ordersTableBody.appendChild(row);
+            });
+        }
+
+        // Handle form submission
+        orderForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const customerName = document.getElementById('customerName').value;
+            const widgetType = document.getElementById('widgetType').value;
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
+            const orderDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+
+            const newOrder = {
+                id: `ORD${String(nextOrderId++).padStart(3, '0')}`,
+                customerName,
+                widgetType,
+                quantity,
+                orderDate
+            };
+
+            orders.push(newOrder);
+            renderOrders(); // Re-render the table with the new order
+
+            // Clear the form
+            orderForm.reset();
+            document.getElementById('quantity').value = 1; // Reset quantity to 1
+        });
+
+        // Initial render of orders when the page loads
+        document.addEventListener('DOMContentLoaded', renderOrders);
+    </script>
+</body>
+</html>
